@@ -8,9 +8,9 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func Register(router *gin.Engine, db *sql.DB) {
+func Register(router *gin.Engine, db *sql.DB, queue chan string) {
 	repo := repository.NewPaymentRepository(db)
-	handler := handlers.NewPaymentHandler(repo)
+	handler := handlers.NewPaymentHandler(repo, queue)
 
 	router.GET("/payments", handler.ListPayments)
 	router.POST("/payments", handler.CreatePayment)

@@ -10,11 +10,12 @@ import (
 )
 
 type PaymentHandler struct {
-	repo *repository.PaymentRepository
+	repo  *repository.PaymentRepository
+	queue chan string
 }
 
-func NewPaymentHandler(repo *repository.PaymentRepository) *PaymentHandler {
-	return &PaymentHandler{repo: repo}
+func NewPaymentHandler(repo *repository.PaymentRepository, queue chan string) *PaymentHandler {
+	return &PaymentHandler{repo: repo, queue: queue}
 }
 
 func (h *PaymentHandler) ListPayments(c *gin.Context) {
@@ -53,7 +54,7 @@ func (h *PaymentHandler) CreatePayment(c *gin.Context) {
 
 	ctx := c.Request.Context()
 
-	payment, err := h.repo.CreatePayment(ctx, req, key)
+	payment, err := h.repo.CreatePayment(ctx, req, key, h.queue)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),

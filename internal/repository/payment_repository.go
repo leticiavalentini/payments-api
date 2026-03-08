@@ -49,7 +49,7 @@ func (r *PaymentRepository) List(ctx context.Context) ([]models.Payment, error) 
 	return payments, nil
 }
 
-func (r *PaymentRepository) CreatePayment(ctx context.Context, req models.CreatePaymentRequest, key string) (*models.Payment, error) {
+func (r *PaymentRepository) CreatePayment(ctx context.Context, req models.CreatePaymentRequest, key string, queue chan string) (*models.Payment, error) {
 	query := `
         INSERT INTO payments_v2
         (id, merchant_id, idempotency_key, request_hash, amount, currency, status)
@@ -108,6 +108,8 @@ func (r *PaymentRepository) CreatePayment(ctx context.Context, req models.Create
 	if payment.RequestHash != reqHash {
 		return nil, errors.New("idempotency key resused with different parameters")
 	}
+
+	queue <- id
 
 	return &payment, err
 }

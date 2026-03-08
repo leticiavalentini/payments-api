@@ -1,11 +1,7 @@
 package main
 
 import (
-	//"log"
-
-	//"payments-api/internal/db"
-	//"payments-api/internal/routes"
-
+	"database/sql"
 	"log"
 	"os"
 	"payments-api/internal/db"
@@ -13,6 +9,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 )
+
+var paymentQueue = make(chan string, 100)
 
 func main() {
 
@@ -25,7 +23,8 @@ func main() {
 	gin.SetMode(gin.DebugMode)
 	router := gin.Default()
 
-	routes.Register(router, database)
+	routes.Register(router, database, paymentQueue)
+	go paymentWorker(database, paymentQueue)
 
 	err := router.Run(":8080")
 
@@ -35,4 +34,10 @@ func main() {
 
 	log.Println("server running on :8080")
 
+}
+
+func paymentWorker(db *sql.DB, paymentQueue <-chan string) {
+	for paymentID := range paymentQueue {
+		log.Println("processing payment", paymentID)
+	}
 }
